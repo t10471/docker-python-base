@@ -5,8 +5,14 @@ MAINTAINER t10471 <t104711202@gmail.com>
 
 ENV OPTS_APT -y --force-yes --no-install-recommends
 
+
+
 # remove several traces of debian python
-RUN apt-get purge -y python.*
+RUN echo "Yes, do as I say!" | apt-get purge -y --force-yes python.* 
+RUN apt-get update\
+ && apt-get install ${OPTS_APT}\
+      libssl-dev \
+      openssl
 
 # gpg: key F73C700D: public key "Larry Hastings <larry@hastings.org>" imported
 ENV GPG_KEY 97FC712E4C024BBEA48A61ED3A5CA953F73C700D
@@ -14,7 +20,7 @@ ENV GPG_KEY 97FC712E4C024BBEA48A61ED3A5CA953F73C700D
 ENV PYTHON_VERSION 3.5.1
 
 # if this is called "PIP_VERSION", pip explodes with "ValueError: invalid truth value '<VERSION>'"
-ENV PYTHON_PIP_VERSION 7.1.2
+ENV PYTHON_PIP_VERSION 8.0.2
 
 RUN set -ex \
     && gpg --keyserver ha.pool.sks-keyservers.net --recv-keys "$GPG_KEY" \
@@ -46,12 +52,13 @@ RUN cd /usr/local/bin \
     && ln -s python3 python \
     && ln -s python-config3 python-config
 
+RUN cd /usr/bin/ && ln -s /usr/local/bin/python3 python3
+
 # gpg: key F73C700D: public key ""
 # Clean up APT and temporary files when done
 RUN apt-get clean -qq && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-RUN ln -s  /usr/local/bin/ruby /usr/bin/ruby
 WORKDIR /root/tmp/vim
 RUN ./configure --with-features=huge \
             --disable-darwin \
